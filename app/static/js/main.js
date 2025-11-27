@@ -85,32 +85,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const resetBtn = document.getElementById("reset-filters-btn");
     const freeOnlyCheckbox = document.getElementById("freeOnly");
 
-    // Кнопка "Обновить статусы" (просто тянет /api/slots без фильтров)
-    if (refreshBtn) {
-        refreshBtn.addEventListener("click", async () => {
-            const originalText = refreshBtn.textContent;
-            refreshBtn.disabled = true;
-            refreshBtn.textContent = "Обновляем...";
-
-            try {
-                const slots = await fetchSlots();
-                renderSlots(slots);
-            } catch (error) {
-                console.error(error);
-                alert("Не удалось обновить слоты. Попробуйте позже.");
-            } finally {
-                refreshBtn.disabled = false;
-                refreshBtn.textContent = originalText;
-            }
-        });
-    }
-
-    if (!form) {
-        return;
-    }
-
     // Собираем значения фильтров из формы
     const collectFilters = () => {
+        if (!form) {
+            return {};
+        }
+
         const filters = {
             date: form.elements["date"].value,
             time_from: form.elements["time_from"].value,
@@ -125,6 +105,46 @@ document.addEventListener("DOMContentLoaded", () => {
 
         return filters;
     };
+
+    // Кнопка "Обновить статусы":
+    // 1) дергает backend для обновления слотов
+    // 2) затем подтягивает данные с учётом текущих фильтров
+    if (refreshBtn) {
+        refreshBtn.addEventListener("click", async () => {
+            const originalText = refreshBtn.textContent;
+            refreshBtn.disabled = true;
+            refreshBtn.textContent = "Обновляем...";
+
+            try {
+                // шаг 1: обновляем слоты на бэкенде
+                const updateResponse = await fetch("/api/update_slots", {
+                    method: "POST",
+                    headers: {
+                        "Accept": "application/json"
+                    }
+                });
+
+                if (!updateResponse.ok) {
+                    throw new Error("Ошибка при обновлении слотов");
+                }
+
+                // шаг 2: подтягиваем свежие слоты с учётом фильтров
+                const filters = collectFilters();
+                const slots = await fetchSlots(filters);
+                renderSlots(slots);
+            } catch (error) {
+                console.error(error);
+                alert("Не удалось обновить статусы. Попробуйте позже.");
+            } finally {
+                refreshBtn.disabled = false;
+                refreshBtn.textContent = originalText;
+            }
+        });
+    }
+
+    if (!form) {
+        return;
+    }
 
     // Кнопка "Применить фильтры"
     if (applyBtn) {
@@ -148,7 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (resetBtn) {
         resetBtn.addEventListener("click", async () => {
             form.reset();
-            // После reset чекбоксы сбросятся к значению по умолчанию (из HTML)
+            // После reset чекбокс вернётся к значению по умолчанию (checked в HTML)
 
             try {
                 const slots = await fetchSlots();

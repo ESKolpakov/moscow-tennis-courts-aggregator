@@ -3,6 +3,7 @@ from datetime import datetime, time
 from flask import Blueprint, render_template, jsonify, request
 
 from app.models import Slot
+from services.updater import update_slots_from_all_sources
 
 # Создаём Blueprint, чтобы структуру можно было легко расширять
 main_bp = Blueprint("main", __name__)
@@ -98,3 +99,20 @@ def api_slots():
     ]
 
     return jsonify({"slots": slots_data})
+
+
+@main_bp.route("/api/update_slots", methods=["POST"])
+def api_update_slots():
+    """
+    Эндпоинт, который обновляет слоты, вызывая все парсеры.
+    Пока использует только MockTennisParser.
+    """
+
+    updated_count = update_slots_from_all_sources()
+
+    return jsonify(
+        {
+            "status": "ok",
+            "updated": updated_count,
+        }
+    )
