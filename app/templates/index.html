@@ -18,7 +18,7 @@
 <!-- Блок фильтров -->
 <div class="card mb-4 shadow-sm">
     <div class="card-body">
-        <form class="row g-3">
+        <form class="row g-3" id="filters-form">
             <div class="col-md-3">
                 <label class="form-label">Дата</label>
                 <input type="date" class="form-control" name="date">
@@ -64,10 +64,18 @@
             </div>
 
             <div class="col-md-9 text-end align-self-end">
-                <button type="button" class="btn btn-outline-secondary me-2">
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary me-2"
+                    id="reset-filters-btn"
+                >
                     Сбросить
                 </button>
-                <button type="button" class="btn btn-primary">
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    id="apply-filters-btn"
+                >
                     Применить фильтры
                 </button>
             </div>
@@ -92,28 +100,22 @@
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
-                <tr>
-                    <th scope="col">Дата</th>
-                    <th scope="col">Время</th>
-                    <th scope="col">Длительность</th>
-                    <th scope="col">Клуб</th>
-                    <th scope="col">Корт</th>
-                    <th scope="col">Статус</th>
-                    <th scope="col">Источник</th>
-                </tr>
+                    <tr>
+                        <th scope="col">Дата</th>
+                        <th scope="col">Время</th>
+                        <th scope="col">Длительность</th>
+                        <th scope="col">Клуб</th>
+                        <th scope="col">Корт</th>
+                        <th scope="col">Статус</th>
+                        <th scope="col">Источник</th>
+                    </tr>
                 </thead>
                 <tbody id="slots-table-body">
                 {% for slot in slots %}
                     <tr>
-                        <td>
-                            {{ slot.start.strftime('%d.%m.%Y') }}
-                        </td>
-                        <td>
-                            {{ slot.start.strftime('%H:%M') }}–{{ slot.end.strftime('%H:%M') }}
-                        </td>
-                        <td>
-                            {{ slot.duration_minutes }} мин
-                        </td>
+                        <td>{{ slot.start.strftime('%d.%m.%Y') }}</td>
+                        <td>{{ slot.start.strftime('%H:%M') }}–{{ slot.end.strftime('%H:%M') }}</td>
+                        <td>{{ slot.duration_minutes }} мин</td>
                         <td>{{ slot.club }}</td>
                         <td>{{ slot.court }}</td>
                         <td>

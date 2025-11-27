@@ -3,9 +3,18 @@
 
 console.log("Moscow Tennis Slots UI loaded");
 
-// Функция, которая запрашивает слоты из API
-async function fetchSlots() {
-    const response = await fetch("/api/slots", {
+// Запрос слотов из API с учётом фильтров
+async function fetchSlots(filters = {}) {
+    const url = new URL("/api/slots", window.location.origin);
+
+    // Добавляем только непустые параметры
+    Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== "") {
+            url.searchParams.append(key, value);
+        }
+    });
+
+    const response = await fetch(url.toString(), {
         headers: {
             "Accept": "application/json"
         }
@@ -19,7 +28,7 @@ async function fetchSlots() {
     return data.slots || [];
 }
 
-// Функция, которая перерисовывает tbody таблицы
+// Перерисовываем tbody таблицы
 function renderSlots(slots) {
     const tbody = document.getElementById("slots-table-body");
     if (!tbody) {
@@ -27,7 +36,6 @@ function renderSlots(slots) {
         return;
     }
 
-    // Если слотов нет — показываем одну строку с текстом
     if (!slots.length) {
         tbody.innerHTML = `
             <tr>
@@ -39,7 +47,6 @@ function renderSlots(slots) {
         return;
     }
 
-    // Строим HTML для каждой строки
     const rowsHtml = slots
         .map((slot) => {
             const statusBadge =
@@ -70,28 +77,86 @@ function renderSlots(slots) {
     tbody.innerHTML = rowsHtml;
 }
 
-// Подписываемся на клик по кнопке "Обновить статусы" после загрузки DOM
+// Подписываемся на события после загрузки DOM
 document.addEventListener("DOMContentLoaded", () => {
     const refreshBtn = document.getElementById("refresh-slots-btn");
+    const form = document.getElementById("filters-form");
+    const applyBtn = document.getElementById("apply-filters-btn");
+    const resetBtn = document.getElementById("reset-filters-btn");
+    const freeOnlyCheckbox = document.getElementById("freeOnly");
 
-    if (!refreshBtn) {
+    // Кнопка "Обновить статусы" (просто тянет /api/slots без фильтров)
+    if (refreshBtn) {
+        refreshBtn.addEventListener("click", async () => {
+            const originalText = refreshBtn.textContent;
+            refreshBtn.disabled = true;
+            refreshBtn.textContent = "Обновляем...";
+
+            try {
+                const slots = await fetchSlots();
+                renderSlots(slots);
+            } catch (error) {
+                console.error(error);
+                alert("Не удалось обновить слоты. Попробуйте позже.");
+            } finally {
+                refreshBtn.disabled = false;
+                refreshBtn.textContent = originalText;
+            }
+        });
+    }
+
+    if (!form) {
         return;
     }
 
-    refreshBtn.addEventListener("click", async () => {
-        const originalText = refreshBtn.textContent;
-        refreshBtn.disabled = true;
-        refreshBtn.textContent = "Обновляем...";
+    // Собираем значения фильтров из формы
+    const collectFilters = () => {
+        const filters = {
+            date: form.elements["date"].value,
+            time_from: form.elements["time_from"].value,
+            time_to: form.elements["time_to"].value,
+            min_duration: form.elements["min_duration"].value,
+            club: form.elements["club"].value
+        };
 
-        try {
-            const slots = await fetchSlots();
-            renderSlots(slots);
-        } catch (error) {
-            console.error(error);
-            alert("Не удалось обновить слоты. Попробуйте позже.");
-        } finally {
-            refreshBtn.disabled = false;
-            refreshBtn.textContent = originalText;
+        if (freeOnlyCheckbox && freeOnlyCheckbox.checked) {
+            filters.free_only = "true";
         }
-    });
+
+        return filters;
+    };
+
+    // Кнопка "Применить фильтры"
+    if (applyBtn) {
+        applyBtn.addEventListener("click", async () => {
+            applyBtn.disabled = true;
+
+            try {
+                const filters = collectFilters();
+                const slots = await fetchSlots(filters);
+                renderSlots(slots);
+            } catch (error) {
+                console.error(error);
+                alert("Не удалось применить фильтры. Попробуйте позже.");
+            } finally {
+                applyBtn.disabled = false;
+            }
+        });
+    }
+
+    // Кнопка "Сбросить"
+    if (resetBtn) {
+        resetBtn.addEventListener("click", async () => {
+            form.reset();
+            // После reset чекбоксы сбросятся к значению по умолчанию (из HTML)
+
+            try {
+                const slots = await fetchSlots();
+                renderSlots(slots);
+            } catch (error) {
+                console.error(error);
+                alert("Не удалось сбросить фильтры. Попробуйте позже.");
+            }
+        });
+    }
 });
