@@ -33,7 +33,7 @@ def seed_slots():
                 start_datetime=now.replace(hour=19, minute=30),
                 end_datetime=now.replace(hour=21),
                 duration_minutes=90,
-                status="free",
+                status="busy",
                 source="seed",
             ),
             Slot(

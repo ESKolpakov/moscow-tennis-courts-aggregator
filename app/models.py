@@ -38,6 +38,28 @@ class Slot(db.Model):
         """Удобное свойство для шаблонов: конец слота."""
         return self.end_datetime
 
+    def to_dict(self):
+        """
+        Представление слота в виде словаря для JSON-ответов.
+        Здесь сразу готовим удобные строки для фронтенда.
+        """
+        date_str = self.start_datetime.strftime("%d.%m.%Y")
+        time_str = (
+            f"{self.start_datetime.strftime('%H:%M')}"
+            f"–{self.end_datetime.strftime('%H:%M')}"
+        )
+
+        return {
+            "id": self.id,
+            "club": self.club,
+            "court": self.court,
+            "status": self.status,
+            "source": self.source or "",
+            "duration_minutes": self.duration_minutes,
+            "date_str": date_str,
+            "time_str": time_str,
+        }
+
     def __repr__(self):
         return (
             f"<Slot {self.club} {self.court} "

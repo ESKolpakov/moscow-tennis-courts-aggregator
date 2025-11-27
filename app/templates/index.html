@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block title %}
-Свободные теннисные корты Москвы
+Свободные теннисные слоты Москвы
 {% endblock %}
 
 {% block content %}
@@ -80,7 +80,11 @@
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="h5 mb-0">Найденные слоты</h2>
-            <button type="button" class="btn btn-sm btn-outline-primary">
+            <button
+                type="button"
+                class="btn btn-sm btn-outline-primary"
+                id="refresh-slots-btn"
+            >
                 Обновить статусы
             </button>
         </div>
@@ -98,7 +102,7 @@
                     <th scope="col">Источник</th>
                 </tr>
                 </thead>
-                <tbody>
+                <tbody id="slots-table-body">
                 {% for slot in slots %}
                     <tr>
                         <td>
