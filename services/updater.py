@@ -4,18 +4,22 @@ from app import db
 from app.models import Slot
 from parsers.base import SlotData
 from parsers.mock_parser import MockTennisParser
+from parsers.yclients import YClientsMyProTennisCourt2Parser
 
 
 def collect_slots_from_all_sources() -> List[SlotData]:
     """
     Вызывает все зарегистрированные парсеры и собирает слоты.
-    Пока у нас только MockTennisParser, позже добавим YClients и другие.
+    Сейчас:
+    - MockTennisParser (тестовые данные)
+    - YClientsMyProTennisCourt2Parser (реальные данные с YClients)
     """
     slots: List[SlotData] = []
 
     parsers = [
         MockTennisParser(),
-        # сюда будем добавлять: YClientsParser(), FindSportParser(), TsaritsynoParser(), ...
+        YClientsMyProTennisCourt2Parser(),
+        # сюда будем добавлять: FindSportParser(), TsaritsynoParser(), ...
     ]
 
     for parser in parsers:
@@ -29,8 +33,8 @@ def replace_all_slots(slots_data: List[SlotData]) -> int:
     """
     Полностью заменяет содержимое таблицы Slot на новые данные.
 
-    Внимание: для MVP это нормально. Когда подключим реальные парсеры,
-    можно будет сделать более умное обновление (по ключу клуб+корт+время).
+    Для MVP это нормально. Позже можно сделать более умное обновление
+    по ключу (клуб + корт + время начала).
     """
     # Удаляем все старые записи
     Slot.query.delete()
@@ -56,7 +60,7 @@ def replace_all_slots(slots_data: List[SlotData]) -> int:
 def update_slots_from_all_sources() -> int:
     """
     Главная функция обновления слотов.
-    Её будем вызывать из Flask-обработчика и/или по расписанию (APScheduler).
+    Её вызываем из Flask-обработчика и/или по расписанию (APScheduler).
     """
     slots = collect_slots_from_all_sources()
     count = replace_all_slots(slots)
