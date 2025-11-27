@@ -1,0 +1,9 @@
+/* Небольшие косметические правки */
+
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+table tbody tr:hover {
+    cursor: pointer;
+}
